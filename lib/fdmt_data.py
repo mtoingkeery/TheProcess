@@ -1,0 +1,213 @@
+# -*- coding: utf-8 -*-
+"""
+Created on Mon Apr  2 16:31:27 2018
+
+@author: houz
+"""
+
+import time,os
+import tushare as ts
+import numpy as np
+from sqlalchemy import create_engine as creg
+import fdmt_date as fd
+import psycopg2 as cxo
+
+
+main_path=os.environ["THE_PROCESS"].replace("\\","/")+"/"
+data_path=main_path+"data/"
+
+db_config=os.environ["THE_PROCESS_DB"]
+[db_host,db_port,db_db,db_user,db_passwd]=db_config.split(";")
+
+magic_box = creg("postgresql+psycopg2://"+db_user+":"+db_passwd+"@"+db_host+"/"+db_db)
+
+def update_index_list():
+    print(time.strftime("%Y/%m/%d %T")+" - Start - Index List")
+    para_df1 = ts.get_index()
+    para_df1["tdate"]=fd.current_date_str
+    para_df1["utime"]=fd.current_time_str
+    para_df2=para_df1.rename(columns={"code":"id"})
+    para_res=para_df2[["tdate","id","name","change","open","preclose","close","high","low","volume","amount","utime"]]    
+    para_res.to_sql("tmp_index",magic_box,if_exists="append",schema="dw",index=False)
+    print(time.strftime("%Y/%m/%d %T")+" - End - Index List")
+
+
+def update_stock_classify():
+    #industry
+    print(time.strftime("%Y/%m/%d %T")+" - Start - Industry List")
+    para_df1 = ts.get_industry_classified()
+    para_df1["utime"]=fd.current_time_str
+    para_df1["flag"]="industry"
+    para_df2=para_df1.rename(columns={"code":"id","c_name":"label"})
+    para_res=para_df2[["id","name","label","flag","utime"]]
+    para_res.to_sql("tmp_stock_classify",magic_box,if_exists="repalce",schema="dw",index=False)
+    print(time.strftime("%Y/%m/%d %T")+" - End - Industry List")
+
+    #concept
+    print(time.strftime("%Y/%m/%d %T")+" - Start - Concept List")
+    para_df1 = ts.get_concept_classified()
+    para_df1["utime"]=fd.current_time_str
+    para_df1["flag"]="concept"
+    para_df2=para_df1.rename(columns={"code":"id","c_name":"label"})
+    para_res=para_df2[["id","name","label","flag","utime"]]
+    para_res.to_sql("tmp_stock_classify",magic_box,if_exists="append",schema="dw",index=False)
+    print(time.strftime("%Y/%m/%d %T")+" - End - Concept List")
+
+    #area
+    print(time.strftime("%Y/%m/%d %T")+" - Start - Area List")
+    para_df1 = ts.get_area_classified()
+    para_df1["utime"]=fd.current_time_str
+    para_df1["flag"]="area"
+    para_df2=para_df1.rename(columns={"code":"id","area":"label"})
+    para_res=para_df2[["id","name","label","flag","utime"]]
+    para_res.to_sql("tmp_stock_classify",magic_box,if_exists="append",schema="dw",index=False)
+    print(time.strftime("%Y/%m/%d %T")+" - End - Area List")
+
+def update_index_component():
+    print(time.strftime("%Y/%m/%d %T")+" - Start - sme")
+    para_df1 = ts.get_sme_classified()
+    para_df1["utime"]=fd.current_time_str
+    para_df1["flag"]="sme"
+    para_df1["weight"]=1.0
+    para_df1["tdate"]=fd.current_date_str
+    para_df2=para_df1.rename(columns={"date":"tdate","code":"id"})
+    para_res=para_df2[["tdate","id","name","weight","flag","utime"]]
+    para_res.to_sql("tmp_index_component",magic_box,if_exists="repalce",schema="dw",index=False)
+    print(time.strftime("%Y/%m/%d %T")+" - End - sme")
+
+    print(time.strftime("%Y/%m/%d %T")+" - Start - gem")
+    para_df1 = ts.get_gem_classified()
+    para_df1["utime"]=fd.current_time_str    #Rename
+    para_df1["flag"]="gem"
+    para_df1["weight"]=1.0
+    para_df1["tdate"]=fd.current_date_str
+    para_df2=para_df1.rename(columns={"date":"tdate","code":"id"})
+    para_res=para_df2[["tdate","id","name","weight","flag","utime"]]
+    para_res.to_sql("tmp_index_component",magic_box,if_exists="append",schema="dw",index=False)
+    print(time.strftime("%Y/%m/%d %T")+" - End - gem")
+
+    print(time.strftime("%Y/%m/%d %T")+" - Start - hs300")
+    para_df1 = ts.get_hs300s()
+    para_df1["utime"]=fd.current_time_str
+    para_df1["flag"]="hs300"
+    para_df2=para_df1.rename(columns={"date":"tdate","code":"id"})
+    para_res=para_df2[["tdate","id","name","weight","flag","utime"]]
+    para_res.to_sql("tmp_index_component",magic_box,if_exists="append",schema="dw",index=False)
+    print(time.strftime("%Y/%m/%d %T")+" - End - hs300")
+    
+    print(time.strftime("%Y/%m/%d %T")+" - Start - sz50")
+    para_df1 = ts.get_sz50s()
+    para_df1["utime"]=fd.current_time_str
+    para_df1["flag"]="sz50"
+    para_df1["weight"]=1.0
+    para_df2=para_df1.rename(columns={"date":"tdate","code":"id"})
+    para_res=para_df2[["tdate","id","name","weight","flag","utime"]]
+    para_res.to_sql("tmp_index_component",magic_box,if_exists="append",schema="dw",index=False)
+    print(time.strftime("%Y/%m/%d %T")+" - End - sz50")
+
+    print(time.strftime("%Y/%m/%d %T")+" - Start - zz500")
+    para_df1 = ts.get_zz500s()
+    para_df1["utime"]=fd.current_time_str
+    para_df1["flag"]="zz500"
+    para_df2=para_df1.rename(columns={"date":"tdate","code":"id"})
+    para_res=para_df2[["tdate","id","name","weight","flag","utime"]]
+    para_res.to_sql("tmp_index_component",magic_box,if_exists="append",schema="dw",index=False)
+    print(time.strftime("%Y/%m/%d %T")+" - End - zz500")
+
+    print(time.strftime("%Y/%m/%d %T")+" - Start - sz50")
+    para_df1 = ts.get_sz50s()
+    para_df1["utime"]=fd.current_time_str
+    para_df1["flag"]="sz50"
+    para_df1["weight"]=1.0
+    para_df2=para_df1.rename(columns={"date":"tdate","code":"id"})
+    para_res=para_df2[["tdate","id","name","weight","flag","utime"]]
+    para_res.to_sql("tmp_index_component",magic_box,if_exists="append",schema="dw",index=False)
+    print(time.strftime("%Y/%m/%d %T")+" - End - sz50")
+    
+    print(time.strftime("%Y/%m/%d %T")+" - Start - zz500")
+    para_df1 = ts.get_zz500s()
+    para_df1["utime"]=fd.current_time_str
+    para_df1["flag"]="zz500"
+    para_df2=para_df1.rename(columns={"date":"tdate","code":"id"})
+    para_res=para_df2[["tdate","id","name","weight","flag","utime"]]
+    para_res.to_sql("tmp_index_component",magic_box,if_exists="append",schema="dw",index=False)
+    print(time.strftime("%Y/%m/%d %T")+" - End - zz500")
+
+
+def get_stock_list(limiter="10000"):
+    list_query="""SELECT ID FROM MAIN.D_INDEX_COMPONENT WHERE FLAG IN ('hs300','sz50','zz500') GROUP BY ID ORDER BY ID LIMIT """+limiter   
+    tunnel_conn = cxo.connect(host=db_host,port=int(db_port),user=db_user,password=db_passwd,database=db_db)
+    tunnel_cur = tunnel_conn.cursor()
+    tunnel_cur.execute(list_query)    
+    res_stock_list = tunnel_cur.fetchall()    
+    tunnel_cur.close()
+    tunnel_conn.close()
+    res_arr=np.array(res_stock_list)
+    return res_arr[:,0].tolist()
+     
+def get_index_list(limiter="100"):
+    list_query="""SELECT ID FROM MAIN.D_INDEX ORDER BY ID LIMIT """+limiter   
+    tunnel_conn = cxo.connect(host=db_host,port=int(db_port),user=db_user,password=db_passwd,database=db_db)
+    tunnel_cur = tunnel_conn.cursor()
+    tunnel_cur.execute(list_query)    
+    res_stock_list = tunnel_cur.fetchall()    
+    tunnel_cur.close()
+    tunnel_conn.close()
+    res_arr=np.array(res_stock_list)
+    return res_arr[:,0].tolist()        
+
+def get_stock_hist(para_id,para_mon,except_list,label="stock",mon_interval=1):
+    print(time.strftime('%Y/%m/%d %T')+" - "+para_mon+" - "+para_id)
+    para_mon_till=fd.date_add(para_mon,mon_interval,"MM",1)
+    para_file=data_path+label+"_hist/"+fd.date_format(para_mon,"yyyymm")+"_"+para_id+".txt"
+    
+    try:
+        if label=="index":
+            para_df = ts.get_h_data(para_id, para_mon, para_mon_till, index=True)
+            print(label)
+        else:
+            para_df = ts.get_h_data(para_id, para_mon, para_mon_till)            
+        para_df["id"]=para_id
+        para_df["tdate"]=para_df.index
+        para_df["utime"]=fd.current_time_str
+        para_df2=para_df[["tdate","id","open","high","close","low","volume","amount","utime"]]
+        para_df2.to_csv(para_file,float_format='%.2f',na_rep=None,index=False,encoding='gb2312',mode="w+",header=True)  
+
+    except Exception as ErrorCode:
+        except_list.append([para_id,para_mon,str(ErrorCode)])
+        print(time.strftime('%Y/%m/%d %T')+" - "+para_mon+" - "+para_id+" - Exception Occurs!")
+        print("-----------------------------------------------------------------------------")
+        print(str(ErrorCode))
+        print("-----------------------------------------------------------------------------")
+
+def pgs_truncate_table(table_name):
+    try:
+        print(time.strftime('%Y/%m/%d %T')+" - Truncate table")
+        tunnel_conn = cxo.connect(host=db_host,port=int(db_port),user=db_user,password=db_passwd,database=db_db)
+        cur = tunnel_conn.cursor()
+        query = "SELECT MAIN.TRUNCATE_TABLE('"+table_name+"')"
+        cur.execute(query)
+        cur.close()
+        tunnel_conn.close()
+    except Exception as ErrorCode:
+        print("-----------------------------------------------------------------------------")
+        print(time.strftime('%Y/%m/%d %T')+" - Exception Occurs!")
+        print(str(ErrorCode))
+        print("-----------------------------------------------------------------------------")
+
+def pgs_update_hist(label):
+    try:
+        print(time.strftime('%Y/%m/%d %T')+" - Update Hist - "+label.upper())
+        tunnel_conn = cxo.connect(host=db_host,port=int(db_port),user=db_user,password=db_passwd,database=db_db)
+        cur = tunnel_conn.cursor()
+        query = "SELECT MAIN.PGS_UPDATE_HIST('"+label+"')";
+        cur.execute(query)
+        cur.close()
+        tunnel_conn.close()
+    except Exception as ErrorCode:
+        print("-----------------------------------------------------------------------------")
+        print(time.strftime('%Y/%m/%d %T')+" - Exception Occurs!")
+        print(str(ErrorCode))
+        print("-----------------------------------------------------------------------------")
+
+    
