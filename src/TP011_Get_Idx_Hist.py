@@ -12,7 +12,6 @@ import fdmt_data as fdt
 
 
 def main():
-    main_path=fdt.main_path
     data_path=fdt.data_path
     
     para_date_start=fda.current_date_str
@@ -26,7 +25,7 @@ def main():
         para_date_end=fda.date_add(fda.current_month_str,1,"MM")
         
     para_date_list=fda.date_list(para_date_start,para_date_end,"MM")
-    para_id_list=fdt.get_index_list()
+    para_id_list=fdt.get_idx_list()
     
     target_list=[]
     except_list=[]
@@ -38,7 +37,7 @@ def main():
     
     for para in target_list:
         [para_id,para_mon]=para
-        fdt.get_stock_hist(para_id,para_mon,except_list,label="index")
+        fdt.get_stk_hist(para_id,para_mon,except_list,label="idx")
         time.sleep(8+4*random.random())
     
     if len(except_list)>0:
@@ -48,7 +47,7 @@ def main():
         for para in except_list:
             [para_id,para_mon,except_dep]=para
             print(except_dep)
-            fdt.get_stock_hist(para_id,para_mon,log_list,label="index")
+            fdt.get_stk_hist(para_id,para_mon,log_list,label="idx")
             time.sleep(10+5*random.random())
     
     if len(log_list)>0:
@@ -56,7 +55,7 @@ def main():
         
         para_df=pd.DataFrame(log_list)
         para_df.columns=[["para_id","para_mon","except_dep"]]
-        log_list_file=data_path+"index_hist_failed_list_"+fda.current_date_str+".txt"
+        log_list_file=data_path+"idx_hist_failed_list_"+fda.current_date_str+".txt"
         para_df.to_csv(log_list_file,float_format='%.2f',na_rep=None,index=False,encoding='gb2312',mode="w+",header=True)  
     
 if __name__ == '__main__':
