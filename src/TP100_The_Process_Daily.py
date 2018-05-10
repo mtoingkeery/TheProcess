@@ -6,10 +6,10 @@ Created on Mon Apr  2 16:31:27 2018
 """
 
 import time
-import TP011_Get_Index_Hist as tp011
-import TP012_Get_Stock_Hist as tp012
-import TP021_Update_Index_Hist as tp021
-import TP022_Update_Stock_Hist as tp022
+import TP011_Get_Idx_Hist as tp011
+import TP012_Get_Stk_Hist as tp012
+import TP021_Update_Idx_Hist as tp021
+import TP022_Update_Stk_Hist as tp022
 
 def main():
     print("------------------------------------------------------")
