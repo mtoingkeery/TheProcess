@@ -90,7 +90,7 @@ def wechat_send(message_content="Hello World! via Python",agent_name="Message"):
             print(time.strftime('%Y/%m/%d %T')+" - Send Successfully")
             return [1,"Send Successfully"]
         else:
-            print(time.strftime('%Y/%m/%d %T')+" - Send Successfully")
+            print(time.strftime('%Y/%m/%d %T')+" - Failed to Send")
             return [100,"Failed to Send"]            
         
     else:
