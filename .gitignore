@@ -2,3 +2,7 @@ pics/
 screen.png
 log/
 config/*.json
+*.pyc
+*/*.pyc
+*/*/*.pyc
+*/*/*/*.pyc
