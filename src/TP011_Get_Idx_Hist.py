@@ -55,7 +55,7 @@ def main():
         
         para_df=pd.DataFrame(log_list)
         para_df.columns=[["para_id","para_mon","except_dep"]]
-        log_list_file=data_path+"idx_hist_failed_list_"+fda.current_date_str+".txt"
+        log_list_file=data_path+"update_log/idx_hist_failed_list_"+fda.current_date_str+".txt"
         para_df.to_csv(log_list_file,float_format='%.2f',na_rep=None,index=False,encoding='gb2312',mode="w+",header=True)  
     
 if __name__ == '__main__':
