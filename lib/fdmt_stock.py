@@ -13,19 +13,12 @@ import shutil,os,socket
 import aircv as ac
 import cv2
 
+import fdmt_data as fdt
 
 #GLOBAL
-machine_name = socket.gethostname()
-print(machine_name)
-
-if machine_name=="DESKTOP-O8U9FOM":
-    the_pentagon="D:\\Branch\\TheProcess\\"
-    config_path=the_pentagon+"config//"
-    screen_config_file=config_path+"screen.json"
-elif machine_name=="Zongyuans-MacBook-Pro.local":
-    the_pentagon="//Users//Marcus//Branch//TheProcess//"    
-    config_path=the_pentagon+"config//"
-    screen_config_file=config_path+"screen.json"
+the_pentagon=fdt.main_path
+config_path=the_pentagon+"config//"
+screen_config_file=config_path+"stk_screen.json"
     
 screen_config=json.load(open(screen_config_file))
 screen_png=the_pentagon+"screen.png"
