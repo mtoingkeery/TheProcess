@@ -7,10 +7,14 @@ Created on Mon Apr  2 16:31:27 2018
 
 import time,os
 import tushare as ts
+import pandas as pd
 import numpy as np
 from sqlalchemy import create_engine as creg
 import fdmt_date as fd
 import psycopg2 as cxo
+
+import fdmt_date as fda
+import fdmt_query as fdq
 
 
 main_path=os.environ["THE_PROCESS"].replace("\\","/")+"/"
@@ -180,6 +184,31 @@ def get_stk_hist(para_id,para_mon,except_list,label="stk",mon_interval=1):
         print(str(ErrorCode))
         print("-----------------------------------------------------------------------------")
 
+
+def pgs_select_query(para_query):
+    try:
+        print(time.strftime('%Y/%m/%d %T')+" - Select Query")
+        print("-----------------------------------------------------------------------------")
+        print(para_query)
+        print("-----------------------------------------------------------------------------")
+        
+        tunnel_conn = cxo.connect(host=db_host,port=int(db_port),user=db_user,password=db_passwd,database=db_db)
+        tunnel_cur = tunnel_conn.cursor()
+        tunnel_cur.execute(para_query)
+        res_stk_list = tunnel_cur.fetchall()    
+        tunnel_cur.close()
+        tunnel_conn.close()
+        
+        res_arr=np.array(res_stk_list)
+        return res_arr[:,:].tolist()
+
+    except Exception as ErrorCode:
+        print("-----------------------------------------------------------------------------")
+        print(time.strftime('%Y/%m/%d %T')+" - Exception Occurs!")
+        print(str(ErrorCode))
+        print("-----------------------------------------------------------------------------")
+
+
 def pgs_execute_query(para_query):
     try:
         print(time.strftime('%Y/%m/%d %T')+" - Execute Query")
@@ -192,6 +221,54 @@ def pgs_execute_query(para_query):
         tunnel_conn.commit()
         cur.close()
         tunnel_conn.close()
+    except Exception as ErrorCode:
+        print("-----------------------------------------------------------------------------")
+        print(time.strftime('%Y/%m/%d %T')+" - Exception Occurs!")
+        print(str(ErrorCode))
+        print("-----------------------------------------------------------------------------")
+
+def pgs_update_stk_cov(cov_days_len='20',cov_para_count='10',label=0):
+    print(time.strftime('%Y/%m/%d %T')+" - Update Stk Cov")
+    try:
+        res_list=[]
+        
+        id_com_list_query=fdq.query('hs300_com',cov_para_count)
+        id_com_list_res=pgs_select_query(id_com_list_query)
+        
+        conn = magic_box.engine.connect()
+        conn.begin()
+        
+        for para in id_com_list_res:                        
+            [pa_id,pb_id]=para
+            com_hist_query=fdq.query('hs300_cov','100000000',cov_days_len,pa_id,pb_id)    
+            
+            df = pd.read_sql(com_hist_query,conn)
+            
+            df_pa_close=df.iloc[:,5]
+            df_pb_close=df.iloc[:,6]
+            
+            df_pa_amount=df.iloc[:,7]
+            df_pb_amount=df.iloc[:,8]
+            
+            cov_len=len(df_pa_close)
+            
+            cov_close=df_pa_close.corr(df_pb_close)
+            cov_amount=df_pa_amount.corr(df_pb_amount)
+            
+            cdate=fda.current_date_str
+            utime=fda.current_time_str
+            
+            para_res=[cdate,cov_days_len,pa_id,pb_id,cov_len,cov_close,cov_amount,utime]
+            res_list.append(para_res)
+            
+            if label==1:
+                print(time.strftime('%Y/%m/%d %T')+" - ",pa_id,pb_id)
+            
+        conn.close()
+        
+        res_df=pd.DataFrame(res_list, columns=['cdate','cov_days_len', 'pa_id', 'pb_id', 'cov_len', 'cov_close', 'cov_amount', 'utime'])    
+        pgs_execute_query("truncate table main.tmp_stk_cov")    
+        res_df.to_sql("tmp_stk_cov",magic_box,if_exists="append",schema="main",index=False)
     except Exception as ErrorCode:
         print("-----------------------------------------------------------------------------")
         print(time.strftime('%Y/%m/%d %T')+" - Exception Occurs!")

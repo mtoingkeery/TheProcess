@@ -46,7 +46,7 @@ def main():
         para_df2=para_df1.rename(columns={"utime":"dtime"})
         para_df2["utime"]=fda.current_time_str
 
-        para_df2.to_sql("tmp_index_hist",magic_box,if_exists="append",schema="main",index=False)
+        para_df2.to_sql("tmp_idx_hist",magic_box,if_exists="append",schema="main",index=False)
 
     fdt.pgs_execute_query("DELETE FROM MAIN.F_IDX_HIST WHERE TDATE>=(SELECT MIN(TDATE) FROM MAIN.TMP_IDX_HIST)")
     fdt.pgs_execute_query("INSERT INTO MAIN.F_IDX_HIST SELECT * FROM MAIN.TMP_IDX_HIST")
