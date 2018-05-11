@@ -54,3 +54,4 @@ def access_token(agent_name="Message"):
         print(time.strftime('%Y/%m/%d %T')+" - Exception Occurs!")
         print(str(ErrorCode))
         print("-----------------------------------------------------------------------------")
+        return [200,""]
