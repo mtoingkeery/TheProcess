@@ -16,5 +16,6 @@ print(target_url)
 html = urlopen(target_url).read()
 html=b'{"errcode":0,"errmsg":"ok","access_token":"UwmFuJzUPSBFfXwI__OgvnRI_6JJKFK5XeOLBABF8DTFciht5RALNWWUjoIBRP2DfjoL89pXzjn9yHc1nNRZdIHZMYPBOivrXpcRkcKONAKAm3wO3jyKthdPRpdcM6Rum_iyOmAl7c0k94TExzvvewDVEICmMdoKvVSIYB4W4Uyadno2Jat5bRIrDb81_IunWhsTEEAMVwFJB0N9NZpvQA","expires_in":7200}'
 
+res=eval(html.decode("utf-8"))
 
-print(eval(html.decode("utf-8")))
+print(res)

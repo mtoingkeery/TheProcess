@@ -79,8 +79,22 @@ def query(flag="hs300",limit="300",label1="",label2="",label3="",label4="",label
         
     return para_query
 
-    
-    
+def sp_json(flag="access_token",label1="",label2="",label3="",label4="",label5="",label6=""):
+    #print(time.strftime('%Y/%m/%d %T')+" - Special Json")   
+
+    para_query=""
+
+    #Access Token Json
+    if flag=="access_token":
+        para_query='''
+            {
+            	"Agentid":"'''+label1+'''",
+            	"AccessToken":"'''+label2+'''",
+            	"UpdateTime":"'''+label3+'''",
+            	"ExpireTime":"'''+label4+'''"
+            }'''    
+                
+    return para_query
     
     
     

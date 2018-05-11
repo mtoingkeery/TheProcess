@@ -1,3 +1,4 @@
 pics/
 screen.png
 log/
+config/*.json
