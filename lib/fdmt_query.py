@@ -77,15 +77,13 @@ def query(flag="hs300",limit="300",label1="",label2="",label3="",label4="",label
         LIMIT """+limit+"""
         """         
         
-    return para_query
+    return para_query.replace("  ","")
 
-def sp_json(flag="access_token",label1="",label2="",label3="",label4="",label5="",label6=""):
+def json(flag="wechat_access_token",label1="",label2="",label3="",label4="",label5="",label6=""):
     #print(time.strftime('%Y/%m/%d %T')+" - Special Json")   
-
     para_query=""
-
     #Access Token Json
-    if flag=="access_token":
+    if flag=="wechat_access_token":
         para_query='''
             {
             	"Agentid":"'''+label1+'''",
@@ -93,13 +91,33 @@ def sp_json(flag="access_token",label1="",label2="",label3="",label4="",label5="
             	"UpdateTime":"'''+label3+'''",
             	"ExpireTime":"'''+label4+'''"
             }'''    
+
+    #Header
+    elif flag=="header":
+        para_query='''{
+                "User-Agent": "Mozilla/4.0 (compatible; MSIE 5.5; Windows NT)"
+            }'''    
+
+    #Post Data Send Message
+    elif flag=="post_data_send_message":
+        para_query='''{
+               "touser" : "'''+label1+'''",
+               "msgtype" : "text",
+               "agentid" : '''+label2+''',
+               "text" : {
+                   "content" : "'''+label3+'''"
+                   },
+               "safe":0
+           }'''    
                 
-    return para_query
-    
-    
-    
-    
-    
+    #Post Data Send Pictures
+    elif flag=="post_data_send_pictures":
+        para_query='''{
+                "User-Agent": "Mozilla/4.0 (compatible; MSIE 5.5; Windows NT)"
+            }'''    
+                
+    return para_query.replace("  ","")
+   
     
     
     

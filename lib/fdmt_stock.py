@@ -6,10 +6,8 @@ Created on Sun Apr  1 14:00:36 2018
 @author: Marcus
 """
 
-import numpy as np
-from PIL import Image
 import json,time
-import shutil,os,socket
+import shutil,os
 import aircv as ac
 import cv2
 
