@@ -5,6 +5,12 @@ Created on Mon Apr  2 16:31:27 2018
 @author: houz
 """
 
+import os as _os
+import pandas as _pd
+import sqlalchemy as _sqlalchemy
+import time as _time
+
+
 def query(flag="hs300",limit="300",label1="",label2="",label3="",label4="",label5=""):
     #print(time.strftime('%Y/%m/%d %T')+" - Special Query")    
     para_query=""
@@ -76,8 +82,64 @@ def query(flag="hs300",limit="300",label1="",label2="",label3="",label4="",label
            DD.TDATE
         LIMIT """+limit+"""
         """         
+    
+    elif flag=="stk_hist_cov":
+        para_query="""
+        INSERT INTO MAIN.F_STK_HIST_COV
+        SELECT
+           CURRENT_DATE AS REPORT_DATE,
+           HIST.STKA    AS STKA_ID,
+           IDXA.NAME    AS STKA_NAME,
+           HIST.STKB    AS STKB_ID,
+           IDXB.NAME    AS STKB_NAME,
+           HIST.COV     AS HIST_COV,
+           HIST.LENDAYS AS LENDAYS,
+           HIST.UTIME   AS UTIME
+        FROM
+           (SELECT
+              SUBSTRING(STKA,2) AS STKA,
+              SUBSTRING(STKB,2) AS STKB,
+              COV               AS COV,
+              LENDAYS           AS LENDAYS,
+              UTIME             AS UTIME
+           FROM
+              MAIN.TMP_STK_HIST_COV STK
+           WHERE
+              STKA<STKB
+              AND COV IS NOT NULL
+           ORDER BY
+              LENDAYS,
+              STKA,
+              STKB
+           )HIST
+        LEFT JOIN
+           (SELECT
+              ID,
+              NAME,
+              ROW_NUMBER() OVER(PARTITION BY ID ORDER BY 1) RN
+           FROM
+              MAIN.D_IDX_COMPONENT
+           )IDXA
+        ON
+           IDXA.RN    =1
+           AND IDXA.ID=HIST.STKA
+        LEFT JOIN
+           (SELECT
+              ID,
+              NAME,
+              ROW_NUMBER() OVER(PARTITION BY ID ORDER BY 1) RN
+           FROM
+              MAIN.D_IDX_COMPONENT
+           )IDXB
+        ON
+           IDXB.RN    =1
+           AND IDXB.ID=HIST.STKB
+        ORDER BY
+           HIST.LENDAYS,
+           HIST.STKA,
+           HIST.STKB"""        
         
-    return para_query.replace("  ","")
+    return para_query.replace("  "," ")
 
 def json(flag="wechat_access_token",label1="",label2="",label3="",label4="",label5="",label6=""):
     #print(time.strftime('%Y/%m/%d %T')+" - Special Json")   
@@ -118,10 +180,5 @@ def json(flag="wechat_access_token",label1="",label2="",label3="",label4="",labe
                 
     return para_query.replace("  ","")
    
-    
-    
-    
-    
-    
-    
+
     

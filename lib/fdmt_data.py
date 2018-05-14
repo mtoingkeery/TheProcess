@@ -11,11 +11,10 @@ import os as _os
 import pandas as _pd
 import time as _time
 import tushare as _ts
-from sqlalchemy import create_engine as _creg
+import sqlalchemy as _sqlalchemy
 
 import fdmt_date as _fda
 import fdmt_query as _fdq
-
 
 main_path=_os.environ["THE_PROCESS"].replace("\\","/")+"/"
 data_path=main_path+"data/"
@@ -23,7 +22,7 @@ data_path=main_path+"data/"
 db_config=_os.environ["THE_PROCESS_DB"]
 [__db_host,__db_port,__db_db,__db_user,__db_passwd]=db_config.split(";")
 
-magic_box = _creg("postgresql+psycopg2://"+__db_user+":"+__db_passwd+"@"+__db_host+"/"+__db_db)
+magic_box = _sqlalchemy.create_engine("postgresql+psycopg2://"+__db_user+":"+__db_passwd+"@"+__db_host+"/"+__db_db)
 
 def update_idx_list():
     print(_time.strftime("%Y/%m/%d %T")+" - Start - IDX List")
@@ -209,12 +208,13 @@ def pgs_select_query(para_query):
         print("-----------------------------------------------------------------------------")
 
 
-def pgs_execute_query(para_query):
+def pgs_execute_query(para_query,label=0):
     try:
         print(_time.strftime('%Y/%m/%d %T')+" - Execute Query")
         print("-----------------------------------------------------------------------------")
-        print(para_query)
-        print("-----------------------------------------------------------------------------")
+        if label==1:
+            print(para_query)
+            print("-----------------------------------------------------------------------------")
         tunnel_conn = _cxo.connect(host=__db_host,port=int(__db_port),user=__db_user,password=__db_passwd,database=__db_db)
         cur = tunnel_conn.cursor()
         cur.execute(para_query)
@@ -227,50 +227,94 @@ def pgs_execute_query(para_query):
         print(str(ErrorCode))
         print("-----------------------------------------------------------------------------")
 
-def pgs_update_stk_cov(cov_days_len='20',cov_para_count='10',label=0):
-    print(_time.strftime('%Y/%m/%d %T')+" - Update Stk Cov")
+def pgs_execute_query_df(para_query,label=0):
     try:
-        res_list=[]
-        
-        id_com_list_query=_fdq.query('hs300_com',cov_para_count)
-        id_com_list_res=pgs_select_query(id_com_list_query)
-        
+        print(_time.strftime('%Y/%m/%d %T')+" - Execute Query DataFrame")
+        print("-----------------------------------------------------------------------------")
+        if label==1:
+            print(para_query)
+            print("-----------------------------------------------------------------------------")        
+
         conn = magic_box.engine.connect()
         conn.begin()
-        
-        for para in id_com_list_res:                        
-            [pa_id,pb_id]=para
-            com_hist_query=_fdq.query('hs300_cov','100000000',cov_days_len,pa_id,pb_id)    
-            
-            df = _pd.read_sql(com_hist_query,conn)
-            
-            df_pa_close=df.iloc[:,5]
-            df_pb_close=df.iloc[:,6]
-            
-            df_pa_amount=df.iloc[:,7]
-            df_pb_amount=df.iloc[:,8]
-            
-            cov_len=len(df_pa_close)
-            
-            cov_close=df_pa_close.corr(df_pb_close)
-            cov_amount=df_pa_amount.corr(df_pb_amount)
-            
-            cdate=_fda.current_date_str
-            utime=_fda.current_time_str
-            
-            para_res=[cdate,cov_days_len,pa_id,pb_id,cov_len,cov_close,cov_amount,utime]
-            res_list.append(para_res)
-            
-            if label==1:
-                print(_time.strftime('%Y/%m/%d %T')+" - ",pa_id,pb_id)
-            
+        para_df = _pd.read_sql(para_query,conn)
         conn.close()
-        
-        res_df=_pd.DataFrame(res_list, columns=['cdate','cov_days_len', 'pa_id', 'pb_id', 'cov_len', 'cov_close', 'cov_amount', 'utime'])    
-        pgs_execute_query("truncate table main.tmp_stk_cov")    
-        res_df.to_sql("tmp_stk_cov",magic_box,if_exists="append",schema="main",index=False)
+        return [1,para_df]
     except Exception as ErrorCode:
         print("-----------------------------------------------------------------------------")
         print(_time.strftime('%Y/%m/%d %T')+" - Exception Occurs!")
         print(str(ErrorCode))
         print("-----------------------------------------------------------------------------")
+        return [200,'']
+
+def pgs_update_stk_cov(lendays='60',flag='hs300',label='close'):    
+    try:
+        query_res="""SELECT STK.TDATE,STK.ID,STK.CLOSE AS VAL FROM DW.F_STK_HIST STK JOIN MAIN.D_IDX_COMPONENT IDX ON STK.ID=IDX.ID AND IDX.FLAG='"""+flag+"""' JOIN (SELECT TDATE FROM DW.F_IDX_HIST WHERE ID='000001' ORDER BY TDATE DESC LIMIT """+lendays+""" )DD ON STK.TDATE=DD.TDATE ORDER BY STK.TDATE,STK.ID"""
+        query_idx="""SELECT ID FROM MAIN.D_IDX_COMPONENT IDX WHERE IDX.FLAG='"""+flag+"""' ORDER BY ID"""
+        
+        db_config=_os.environ["THE_PROCESS_DB"]
+        [db_host,db_port,db_db,db_user,db_passwd]=db_config.split(";")
+        magic_box = _sqlalchemy.create_engine("postgresql+psycopg2://"+db_user+":"+db_passwd+"@"+db_host+"/"+db_db)
+        
+        conn = magic_box.engine.connect()
+        conn.begin()
+        query_idx_df = _pd.read_sql(query_idx,conn)
+        conn.close()    
+    
+        query_list_res=query_idx_df.values[:,0].tolist()
+        
+        para_list_mid=""
+        for para in query_list_res:
+            para_list_mid+="S"+para+" float8,\n"
+    
+        query_list_str="""\nAS \n( \nTDATE VARCHAR(10),\n"""+para_list_mid+")"
+        query_list_str=query_list_str.replace(",\n)","\n)")
+        
+        final_query="""SELECT * FROM DW.CROSSTAB \n(\n'"""+query_res.replace("'","''")+"""',\n'"""+query_idx.replace("'","''")+"""'\n)"""+query_list_str
+    
+        para_df_res=pgs_execute_query_df(final_query)
+        para_cov_df_res=para_df_res[1].corr(min_periods=int(int(lendays)/2))    
+        
+        list_index=para_cov_df_res.index.tolist()
+        
+        pgs_execute_query("DELETE FROM MAIN.TMP_STK_HIST_COV WHERE LENDAYS="+lendays+";")
+
+        for para in para_cov_df_res.columns.tolist():        
+            print(_time.strftime('%Y/%m/%d %T')+" - "+para)
+            para_df=para_cov_df_res.loc[:,[para]]
+            para_df['stkb']=para
+            para_df['stka']=list_index
+            para_df['lendays']=int(lendays)
+            para_df['utime']=_fda.current_time_str
+            para_df.columns=['cov','stkb','stka','lendays','utime']
+            
+            para_df2=para_df[['stka', 'stkb', 'cov','lendays','utime']].reset_index(drop=True)
+            
+            para_df2.to_sql("tmp_stk_hist_cov",magic_box,if_exists="append",schema="main",index=False)
+        
+        return [1,"Success"]
+        
+    except Exception as ErrorCode:
+        print("-----------------------------------------------------------------------------")
+        print(_time.strftime('%Y/%m/%d %T')+" - Exception Occurs!")
+        print(str(ErrorCode))
+        print("-----------------------------------------------------------------------------")
+        return [200,str(ErrorCode)]
+
+def pgs_update_stk_cov_p2():    
+    try:
+        pgs_execute_query("DELETE FROM MAIN.F_STK_HIST_COV WHERE REPORT_DATE=CURRENT_DATE;")
+        query_stk_hist_cov=_fdq.query("stk_hist_cov")
+        pgs_execute_query(query_stk_hist_cov)        
+        
+        return [1,"Success"]
+        
+    except Exception as ErrorCode:
+        print("-----------------------------------------------------------------------------")
+        print(_time.strftime('%Y/%m/%d %T')+" - Exception Occurs!")
+        print(str(ErrorCode))
+        print("-----------------------------------------------------------------------------")
+        return [200,str(ErrorCode)]
+
+#pgs_update_stk_cov(lendays='60',flag='hs300',label='close')
+pgs_update_stk_cov_p2()
