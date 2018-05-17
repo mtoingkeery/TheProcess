@@ -207,6 +207,26 @@ def pgs_select_query(para_query):
         print(str(ErrorCode))
         print("-----------------------------------------------------------------------------")
 
+def pgs_select_query_df(para_query,label=0):
+    try:
+        print(_time.strftime('%Y/%m/%d %T')+" - Select Query DataFrame")
+        print("-----------------------------------------------------------------------------")
+        if label==1:
+            print(para_query)
+            print("-----------------------------------------------------------------------------")        
+
+        conn = magic_box.engine.connect()
+        conn.begin()
+        para_df = _pd.read_sql(para_query,conn)
+        conn.close()
+        return [1,para_df]
+    except Exception as ErrorCode:
+        print("-----------------------------------------------------------------------------")
+        print(_time.strftime('%Y/%m/%d %T')+" - Exception Occurs!")
+        print(str(ErrorCode))
+        print("-----------------------------------------------------------------------------")
+        return [200,'']
+
 
 def pgs_execute_query(para_query,label=0):
     try:
@@ -226,26 +246,6 @@ def pgs_execute_query(para_query,label=0):
         print(_time.strftime('%Y/%m/%d %T')+" - Exception Occurs!")
         print(str(ErrorCode))
         print("-----------------------------------------------------------------------------")
-
-def pgs_execute_query_df(para_query,label=0):
-    try:
-        print(_time.strftime('%Y/%m/%d %T')+" - Execute Query DataFrame")
-        print("-----------------------------------------------------------------------------")
-        if label==1:
-            print(para_query)
-            print("-----------------------------------------------------------------------------")        
-
-        conn = magic_box.engine.connect()
-        conn.begin()
-        para_df = _pd.read_sql(para_query,conn)
-        conn.close()
-        return [1,para_df]
-    except Exception as ErrorCode:
-        print("-----------------------------------------------------------------------------")
-        print(_time.strftime('%Y/%m/%d %T')+" - Exception Occurs!")
-        print(str(ErrorCode))
-        print("-----------------------------------------------------------------------------")
-        return [200,'']
 
 def pgs_update_stk_cov(lendays='60',flag='hs300',label='close'):    
     try:
@@ -315,6 +315,3 @@ def pgs_update_stk_cov_p2():
         print(str(ErrorCode))
         print("-----------------------------------------------------------------------------")
         return [200,str(ErrorCode)]
-
-#pgs_update_stk_cov(lendays='60',flag='hs300',label='close')
-pgs_update_stk_cov_p2()

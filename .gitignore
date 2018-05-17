@@ -2,6 +2,7 @@ pics/
 screen.png
 log/
 config/*.json
+bin/*.bat
 *.pyc
 */*.pyc
 */*/*.pyc

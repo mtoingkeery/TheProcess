@@ -137,8 +137,47 @@ def query(flag="hs300",limit="300",label1="",label2="",label3="",label4="",label
         ORDER BY
            HIST.LENDAYS,
            HIST.STKA,
-           HIST.STKB"""        
-        
+           HIST.STKB"""     
+           
+    elif flag=="stk_hist_hs300":
+        para_query="""
+        SELECT
+           HIST.TDATE   AS TDATE,
+           'S'||HIST.ID AS ID,
+           IDX.SNAME    AS SNAME,
+           HIST.AMOUNT  AS AMOUNT
+        FROM
+           (SELECT
+              TDATE           AS TDATE,
+              ID              AS ID,
+              """+label1+"""  AS AMOUNT
+           FROM
+              DW.F_STK_HIST
+           )HIST
+        JOIN
+           (SELECT
+                TDATE
+           FROM DW.F_IDX_HIST IDX
+           WHERE IDX.ID='000009'
+           ORDER BY TDATE DESC
+           LIMIT """+limit+"""
+           )DD
+        ON
+           HIST.TDATE=DD.TDATE   
+        JOIN
+           (SELECT
+              ID    AS ID,
+              NAME  AS SNAME
+           FROM
+              MAIN.D_IDX_COMPONENT
+           WHERE
+              FLAG='hs300'
+           )IDX
+        ON
+           HIST.ID=IDX.ID
+        ORDER BY
+           HIST.ID,
+           HIST.TDATE"""
     return para_query.replace("  "," ")
 
 def json(flag="wechat_access_token",label1="",label2="",label3="",label4="",label5="",label6=""):
