@@ -39,7 +39,9 @@ def main():
     bat_file.write("cd/\n")
     bat_file.write("c:\n")
     bat_file.write("cd "+main_path+"\n")
-    bat_file.write("gitp\n")
+    bat_file.write("git pull\n")
+    bat_file.write("git add .\n")
+    bat_file.write("git status\n")    
     bat_file.write('''git commit -m "system regular upate"\n''')
     bat_file.write("git push")
 
