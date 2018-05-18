@@ -5,9 +5,6 @@ Created on Mon Apr  2 16:31:27 2018
 @author: houz
 """
 
-import os as _os
-import pandas as _pd
-import sqlalchemy as _sqlalchemy
 import time as _time
 
 
@@ -21,124 +18,20 @@ def query(flag="hs300",limit="300",label1="",label2="",label3="",label4="",label
         LIMIT """+limit+"""
         """
 
-    #HS300 ID Combinations
-    elif flag=="hs300_com":
+    #All Idx
+    elif flag=="all_idx":
         para_query="""
-        SELECT
-           PA.ID AS PA_ID,
-           PB.ID AS PB_ID
-        FROM
-           ( SELECT ID FROM MAIN.D_IDX_COMPONENT WHERE FLAG='hs300'
-           )PA
-        LEFT JOIN
-           ( SELECT ID FROM MAIN.D_IDX_COMPONENT WHERE FLAG='hs300'
-           )PB
-        ON
-           PA.ID<PB.ID
-        ORDER BY
-           PA.ID,
-           PB.ID
+        SELECT ID FROM MAIN.D_IDX ORDER BY ID
         LIMIT """+limit+"""
         """
 
-    #HS300 ID Combinations Hist
-    elif flag=='hs300_cov':
+    #All Stk in 
+    elif flag=="all_stk":
         para_query="""
-        SELECT
-           DD.TDATE          AS TDATE,
-           DD.IDX_CLOSE      AS IDX_CLOSE,
-           DD.IDX_AMOUNT     AS IDX_AMOUNT,
-           HIST_A.ID         AS PA_ID,
-           HIST_B.ID         AS PB_ID,
-           HIST_A.CLOSE      AS PA_CLOSE,
-           HIST_B.CLOSE      AS PB_CLOSE,
-           HIST_A.AMOUNT     AS PA_AMOUNT,
-           HIST_B.AMOUNT     AS PB_AMOUNT
-           --CURRENT_TIMESTAMP AS UPDATE_TIME
-        FROM
-           (SELECT
-              TDATE                                                AS TDATE,
-              CLOSE                                                AS IDX_CLOSE,
-              AMOUNT                                               AS IDX_AMOUNT,
-              ROW_NUMBER()OVER(PARTITION BY 1 ORDER BY TDATE DESC) AS RNK
-           FROM
-              DW.F_IDX_HIST
-           WHERE
-              ID='000300'
-           )DD
-        JOIN DW.F_STK_HIST HIST_A
-        ON
-           DD.TDATE     =HIST_A.TDATE
-           AND HIST_A.ID='"""+label2+"""'
-        JOIN DW.F_STK_HIST HIST_B
-        ON
-           DD.TDATE      =HIST_B.TDATE
-           AND HIST_B.ID='"""+label3+"""'
-        WHERE
-           DD.RNK<="""+label1+"""
-        ORDER BY
-           HIST_A.ID,
-           HIST_B.ID,
-           DD.TDATE
+        SELECT ID FROM MAIN.D_IDX_COMPONENT WHERE FLAG IN ('hs300','sz50','zz500') GROUP BY ID ORDER BY ID
         LIMIT """+limit+"""
-        """         
-    
-    elif flag=="stk_hist_cov":
-        para_query="""
-        INSERT INTO MAIN.F_STK_HIST_COV
-        SELECT
-           CURRENT_DATE AS REPORT_DATE,
-           HIST.STKA    AS STKA_ID,
-           IDXA.NAME    AS STKA_NAME,
-           HIST.STKB    AS STKB_ID,
-           IDXB.NAME    AS STKB_NAME,
-           HIST.COV     AS HIST_COV,
-           HIST.LENDAYS AS LENDAYS,
-           HIST.UTIME   AS UTIME
-        FROM
-           (SELECT
-              SUBSTRING(STKA,2) AS STKA,
-              SUBSTRING(STKB,2) AS STKB,
-              COV               AS COV,
-              LENDAYS           AS LENDAYS,
-              UTIME             AS UTIME
-           FROM
-              MAIN.TMP_STK_HIST_COV STK
-           WHERE
-              STKA<STKB
-              AND COV IS NOT NULL
-           ORDER BY
-              LENDAYS,
-              STKA,
-              STKB
-           )HIST
-        LEFT JOIN
-           (SELECT
-              ID,
-              NAME,
-              ROW_NUMBER() OVER(PARTITION BY ID ORDER BY 1) RN
-           FROM
-              MAIN.D_IDX_COMPONENT
-           )IDXA
-        ON
-           IDXA.RN    =1
-           AND IDXA.ID=HIST.STKA
-        LEFT JOIN
-           (SELECT
-              ID,
-              NAME,
-              ROW_NUMBER() OVER(PARTITION BY ID ORDER BY 1) RN
-           FROM
-              MAIN.D_IDX_COMPONENT
-           )IDXB
-        ON
-           IDXB.RN    =1
-           AND IDXB.ID=HIST.STKB
-        ORDER BY
-           HIST.LENDAYS,
-           HIST.STKA,
-           HIST.STKB"""     
-           
+        """
+
     elif flag=="stk_hist_hs300":
         para_query="""
         SELECT
@@ -178,6 +71,27 @@ def query(flag="hs300",limit="300",label1="",label2="",label3="",label4="",label
         ORDER BY
            HIST.ID,
            HIST.TDATE"""
+
+    elif flag=="basic_idx_stk":
+        para_query="""
+        SELECT
+           CASE
+              WHEN CA  >10
+                 AND CB>1000
+                 AND CC>10000 THEN 1
+              ELSE 0
+           END AS LABEL,
+           CA  AS IDX,
+           CB  AS IDX_COMPONENT,
+           CC  AS STK_CLASSIFY
+        FROM
+           ( SELECT COUNT(1) AS CA FROM DW.D_IDX
+           )CA,
+           ( SELECT COUNT(1) AS CB FROM DW.D_IDX_COMPONENT
+           )CB,
+           ( SELECT COUNT(1) AS CC FROM DW.D_STK_CLASSIFY
+           )CC;"""
+
     return para_query.replace("  "," ")
 
 def json(flag="wechat_access_token",label1="",label2="",label3="",label4="",label5="",label6=""):
@@ -219,5 +133,3 @@ def json(flag="wechat_access_token",label1="",label2="",label3="",label4="",labe
                 
     return para_query.replace("  ","")
    
-
-    
