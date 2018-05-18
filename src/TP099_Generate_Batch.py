@@ -43,7 +43,7 @@ def main():
     bat_file.write("git add .\n")
     bat_file.write("git status\n")    
     bat_file.write('''git commit -m "system regular upate"\n''')
-    bat_file.write("git push")
+    bat_file.write("git push origin master:develop")
 
     bat_file.close()
 

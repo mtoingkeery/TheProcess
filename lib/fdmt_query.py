@@ -21,14 +21,14 @@ def query(flag="hs300",limit="300",label1="",label2="",label3="",label4="",label
     #All Idx
     elif flag=="all_idx":
         para_query="""
-        SELECT ID FROM MAIN.D_IDX ORDER BY ID
+        SELECT SUBSTRING(ID,2) AS ID FROM DW.D_IDX ORDER BY SUBSTRING(ID,2)
         LIMIT """+limit+"""
         """
 
     #All Stk in 
     elif flag=="all_stk":
         para_query="""
-        SELECT ID FROM MAIN.D_IDX_COMPONENT WHERE FLAG IN ('hs300','sz50','zz500') GROUP BY ID ORDER BY ID
+        SELECT SUBSTRING(ID,2) AS ID FROM DW.D_IDX_COMPONENT WHERE FLAG IN ('hs300','sz50','zz500') GROUP BY SUBSTRING(ID,2) ORDER BY SUBSTRING(ID,2)
         LIMIT """+limit+"""
         """
 
