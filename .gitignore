@@ -7,5 +7,3 @@ bin/*.bat
 */*.pyc
 */*/*.pyc
 */*/*/*.pyc
-.idea/
-.idea
