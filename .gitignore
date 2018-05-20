@@ -3,9 +3,5 @@ screen.png
 log/
 config/*.json
 bin/*.bat
-*.pyc
-*/*.pyc
-*/*/*.pyc
-*/*/*/*.pyc
-.idea
+lib/__pycache__/*.pyc
 *.iml
