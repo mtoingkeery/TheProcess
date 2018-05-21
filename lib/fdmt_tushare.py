@@ -10,6 +10,7 @@ import fdmt_data as _fdmt_data
 import fdmt_query as _fdmt_query
 import fdmt_procedure as _fdmt_procedure
 
+import pandas as _pd
 import pickle as _pickle
 import time as _time
 import tushare as _ts
@@ -121,6 +122,8 @@ def update_idx_component(label=0):
     #sme
     ####################################################################
     print(_time.strftime("%Y/%m/%d %T")+" - Start - sme")
+    para_df_total = _pd.DataFrame(columns=['id'])
+
     para_df1 = _ts.get_sme_classified()
     para_df1["utime"]=_fdmt_date.current_time_str
     para_df1["flag"]="sme"
@@ -133,6 +136,7 @@ def update_idx_component(label=0):
     para_df2["id"]=para_id_list2
 
     para_res=para_df2[["tdate","id","name","weight","flag","utime"]]
+    para_df_total=_pd.concat([para_df_total,para_res],ignore_index=True)
 
     pickle_file_path=__data_path+"config/idx_sme_list.pkl"
     pickle_file=open(pickle_file_path,"wb+")
@@ -159,6 +163,7 @@ def update_idx_component(label=0):
     para_df2["id"]=para_id_list2
 
     para_res=para_df2[["tdate","id","name","weight","flag","utime"]]
+    para_df_total=_pd.concat([para_df_total,para_res],ignore_index=True)
 
     pickle_file_path=__data_path+"config/idx_gem_list.pkl"
     pickle_file=open(pickle_file_path,"wb+")
@@ -183,6 +188,7 @@ def update_idx_component(label=0):
     para_df2["id"]=para_id_list2
 
     para_res=para_df2[["tdate","id","name","weight","flag","utime"]]
+    para_df_total=_pd.concat([para_df_total,para_res],ignore_index=True)
 
     pickle_file_path=__data_path+"config/idx_hs300_list.pkl"
     pickle_file=open(pickle_file_path,"wb+")
@@ -208,6 +214,7 @@ def update_idx_component(label=0):
     para_df2["id"]=para_id_list2
 
     para_res=para_df2[["tdate","id","name","weight","flag","utime"]]
+    para_df_total=_pd.concat([para_df_total,para_res],ignore_index=True)
 
     pickle_file_path=__data_path+"config/idx_sz50_list.pkl"
     pickle_file=open(pickle_file_path,"wb+")
@@ -232,6 +239,7 @@ def update_idx_component(label=0):
     para_df2["id"]=para_id_list2
 
     para_res=para_df2[["tdate","id","name","weight","flag","utime"]]
+    para_df_total=_pd.concat([para_df_total,para_res],ignore_index=True)
 
     pickle_file_path=__data_path+"config/idx_zz500_list.pkl"
     pickle_file=open(pickle_file_path,"wb+")
@@ -243,6 +251,14 @@ def update_idx_component(label=0):
         para_res.to_sql("tmp_idx_component",__magic_box,if_exists="replace",schema="main",index=False)
     print(_time.strftime("%Y/%m/%d %T")+" - End - zz500")
 
+    para_df_total.drop_duplicates()
+    para_df_total=para_df_total.sort_values(by=['id'])
+    para_df_total.reset_index(drop=True)
+
+    pickle_file_path=__data_path+"config/idx_component_list.pkl"
+    pickle_file=open(pickle_file_path,"wb+")
+    _pickle.dump(para_df_total,pickle_file)
+    pickle_file.close()
 
 def get_stk_hist(para_id,para_mon,except_list,label="stk",mon_interval=1):
     print(_time.strftime('%Y/%m/%d %T')+" - "+para_mon+" - "+para_id)
