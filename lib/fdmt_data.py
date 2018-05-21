@@ -13,8 +13,8 @@ import time as _time
 import tushare as _ts
 import sqlalchemy as _sqlalchemy
 
-import fdmt_date as _fda
-import fdmt_query as _fdq
+import fdmt_date as _fdmt_date
+import fdmt_query as _fdmt_query
 
 main_path=_os.environ["THE_PROCESS"].replace("\\","/")+"/"
 data_path=main_path+"data/"
@@ -146,7 +146,7 @@ def pgs_update_stk_cov(lendays='60',flag='hs300',label='close'):
             para_df['stkb']=para
             para_df['stka']=list_index
             para_df['lendays']=int(lendays)
-            para_df['utime']=_fda.current_time_str
+            para_df['utime']=_fdmt_date.current_time_str
             para_df.columns=['cov','stkb','stka','lendays','utime']
             
             para_df2=para_df[['stka', 'stkb', 'cov','lendays','utime']].reset_index(drop=True)
@@ -165,7 +165,7 @@ def pgs_update_stk_cov(lendays='60',flag='hs300',label='close'):
 def pgs_update_stk_cov_p2():    
     try:
         pgs_execute_query("DELETE FROM MAIN.F_STK_HIST_COV WHERE REPORT_DATE=CURRENT_DATE;")
-        query_stk_hist_cov=_fdq.query("stk_hist_cov")
+        query_stk_hist_cov=_fdmt_query.query("stk_hist_cov")
         pgs_execute_query(query_stk_hist_cov)        
         
         return [1,"Success"]
@@ -176,3 +176,26 @@ def pgs_update_stk_cov_p2():
         print(str(ErrorCode))
         print("-----------------------------------------------------------------------------")
         return [200,str(ErrorCode)]
+
+def pgs_df_to_db(para_df,table_name,chunksize=1000):
+    #Specific Func & Need to create table manually & Always truncate the target table
+    pgs_execute_query("TRUNCATE TABLE "+table_name+";")
+
+    #Setup Connection
+    tunnel_conn = _cxo.connect(host=__db_host,port=int(__db_port),user=__db_user,password=__db_passwd,database=__db_db)
+    tunnel_cur = tunnel_conn.cursor()
+
+    #Execute Many
+    para_str1="""INSERT INTO """+table_name+""" VALUES("""
+    para_str2="%s,"*para_df.columns.size
+
+    para_query=para_str1+para_str2[:-1]+")"
+    para_list = _np.array(para_df).tolist()
+    tunnel_cur.executemany(para_query, para_list)
+
+    tunnel_conn.commit()
+
+    #Close Connection
+    tunnel_cur.close()
+    tunnel_conn.close()
+
