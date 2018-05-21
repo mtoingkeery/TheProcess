@@ -10,12 +10,14 @@ import fdmt_data as _fdmt_data
 import fdmt_query as _fdmt_query
 import fdmt_procedure as _fdmt_procedure
 
+import pickle as _pickle
 import time as _time
 import tushare as _ts
 
 __magic_box=_fdmt_data.magic_box
+__data_path=_fdmt_data.data_path
 
-def update_idx_list():
+def update_idx_list(label=0):
     #index list
     ####################################################################
     print(_time.strftime("%Y/%m/%d %T")+" - Start - IDX List")
@@ -28,12 +30,20 @@ def update_idx_list():
     para_id_list2=["X"+x for x in para_id_list]
     para_df2["id"]=para_id_list2
 
-    para_res=para_df2[["tdate","id","name","change","open","preclose","close","high","low","volume","amount","utime"]]
-    para_res.to_sql("tmp_idx",__magic_box,if_exists="replace",schema="main",index=False)
+    para_res=para_df2[["tdate","id","name","utime"]]
+
+    pickle_file_path=__data_path+"config/idx.pkl"
+    pickle_file=open(pickle_file_path,"wb+")
+    _pickle.dump(para_res,pickle_file)
+    pickle_file.close()
+
+    if label==1:
+        print(_time.strftime("%Y/%m/%d %T")+" - Insert Into Database")
+        para_res.to_sql("tmp_idx",__magic_box,if_exists="replace",schema="main",index=False)
     print(_time.strftime("%Y/%m/%d %T")+" - End - Index List")
 
 
-def update_stk_classify():
+def update_stk_classify(label=0):
     #industry
     ####################################################################
     print(_time.strftime("%Y/%m/%d %T")+" - Start - Industry List")
@@ -47,7 +57,15 @@ def update_stk_classify():
     para_df2["id"]=para_id_list2
 
     para_res=para_df2[["id","name","label","flag","utime"]]
-    para_res.to_sql("tmp_stk_classify",__magic_box,if_exists="append",schema="main",index=False)
+
+    pickle_file_path=__data_path+"config/stk_industry_list.pkl"
+    pickle_file=open(pickle_file_path,"wb+")
+    _pickle.dump(para_res,pickle_file)
+    pickle_file.close()
+
+    if label==1:
+        print(_time.strftime("%Y/%m/%d %T")+" - Insert Into Database")
+        para_res.to_sql("tmp_stk_classify",__magic_box,if_exists="replace",schema="main",index=False)
     print(_time.strftime("%Y/%m/%d %T")+" - End - Industry List")
 
     #concept
@@ -63,7 +81,15 @@ def update_stk_classify():
     para_df2["id"]=para_id_list2
 
     para_res=para_df2[["id","name","label","flag","utime"]]
-    para_res.to_sql("tmp_stk_classify",__magic_box,if_exists="append",schema="main",index=False)
+
+    pickle_file_path=__data_path+"config/stk_concept_list.pkl"
+    pickle_file=open(pickle_file_path,"wb+")
+    _pickle.dump(para_res,pickle_file)
+    pickle_file.close()
+
+    if label==1:
+        print(_time.strftime("%Y/%m/%d %T")+" - Insert Into Database")
+        para_res.to_sql("tmp_stk_classify",__magic_box,if_exists="replace",schema="main",index=False)
     print(_time.strftime("%Y/%m/%d %T")+" - End - Concept List")
 
     #area
@@ -79,11 +105,19 @@ def update_stk_classify():
     para_df2["id"]=para_id_list2
 
     para_res=para_df2[["id","name","label","flag","utime"]]
-    para_res.to_sql("tmp_stk_classify",__magic_box,if_exists="append",schema="main",index=False)
+
+    pickle_file_path=__data_path+"config/stk_area_list.pkl"
+    pickle_file=open(pickle_file_path,"wb+")
+    _pickle.dump(para_res,pickle_file)
+    pickle_file.close()
+
+    if label==1:
+        print(_time.strftime("%Y/%m/%d %T")+" - Insert Into Database")
+        para_res.to_sql("tmp_stk_classify",__magic_box,if_exists="replace",schema="main",index=False)
     print(_time.strftime("%Y/%m/%d %T")+" - End - Area List")
 
 
-def update_idx_component():
+def update_idx_component(label=0):
     #sme
     ####################################################################
     print(_time.strftime("%Y/%m/%d %T")+" - Start - sme")
@@ -99,7 +133,15 @@ def update_idx_component():
     para_df2["id"]=para_id_list2
 
     para_res=para_df2[["tdate","id","name","weight","flag","utime"]]
-    para_res.to_sql("tmp_idx_component",__magic_box,if_exists="replace",schema="main",index=False)
+
+    pickle_file_path=__data_path+"config/idx_sme_list.pkl"
+    pickle_file=open(pickle_file_path,"wb+")
+    _pickle.dump(para_res,pickle_file)
+    pickle_file.close()
+
+    if label==1:
+        print(_time.strftime("%Y/%m/%d %T")+" - Insert Into Database")
+        para_res.to_sql("tmp_idx_component",__magic_box,if_exists="replace",schema="main",index=False)
     print(_time.strftime("%Y/%m/%d %T")+" - End - sme")
 
     #gem
@@ -117,7 +159,15 @@ def update_idx_component():
     para_df2["id"]=para_id_list2
 
     para_res=para_df2[["tdate","id","name","weight","flag","utime"]]
-    para_res.to_sql("tmp_idx_component",__magic_box,if_exists="append",schema="main",index=False)
+
+    pickle_file_path=__data_path+"config/idx_gem_list.pkl"
+    pickle_file=open(pickle_file_path,"wb+")
+    _pickle.dump(para_res,pickle_file)
+    pickle_file.close()
+
+    if label==1:
+        print(_time.strftime("%Y/%m/%d %T")+" - Insert Into Database")
+        para_res.to_sql("tmp_idx_component",__magic_box,if_exists="replace",schema="main",index=False)
     print(_time.strftime("%Y/%m/%d %T")+" - End - gem")
 
     #hs300
@@ -133,7 +183,15 @@ def update_idx_component():
     para_df2["id"]=para_id_list2
 
     para_res=para_df2[["tdate","id","name","weight","flag","utime"]]
-    para_res.to_sql("tmp_idx_component",__magic_box,if_exists="append",schema="main",index=False)
+
+    pickle_file_path=__data_path+"config/idx_hs300_list.pkl"
+    pickle_file=open(pickle_file_path,"wb+")
+    _pickle.dump(para_res,pickle_file)
+    pickle_file.close()
+
+    if label==1:
+        print(_time.strftime("%Y/%m/%d %T")+" - Insert Into Database")
+        para_res.to_sql("tmp_idx_component",__magic_box,if_exists="replace",schema="main",index=False)
     print(_time.strftime("%Y/%m/%d %T")+" - End - hs300")
 
     #sz50
@@ -150,7 +208,15 @@ def update_idx_component():
     para_df2["id"]=para_id_list2
 
     para_res=para_df2[["tdate","id","name","weight","flag","utime"]]
-    para_res.to_sql("tmp_idx_component",__magic_box,if_exists="append",schema="main",index=False)
+
+    pickle_file_path=__data_path+"config/idx_sz50_list.pkl"
+    pickle_file=open(pickle_file_path,"wb+")
+    _pickle.dump(para_res,pickle_file)
+    pickle_file.close()
+
+    if label==1:
+        print(_time.strftime("%Y/%m/%d %T")+" - Insert Into Database")
+        para_res.to_sql("tmp_idx_component",__magic_box,if_exists="replace",schema="main",index=False)
     print(_time.strftime("%Y/%m/%d %T")+" - End - sz50")
 
     #zz500
@@ -166,14 +232,22 @@ def update_idx_component():
     para_df2["id"]=para_id_list2
 
     para_res=para_df2[["tdate","id","name","weight","flag","utime"]]
-    para_res.to_sql("tmp_idx_component",__magic_box,if_exists="append",schema="main",index=False)
+
+    pickle_file_path=__data_path+"config/idx_zz500_list.pkl"
+    pickle_file=open(pickle_file_path,"wb+")
+    _pickle.dump(para_res,pickle_file)
+    pickle_file.close()
+
+    if label==1:
+        print(_time.strftime("%Y/%m/%d %T")+" - Insert Into Database")
+        para_res.to_sql("tmp_idx_component",__magic_box,if_exists="replace",schema="main",index=False)
     print(_time.strftime("%Y/%m/%d %T")+" - End - zz500")
 
 
 def get_stk_hist(para_id,para_mon,except_list,label="stk",mon_interval=1):
     print(_time.strftime('%Y/%m/%d %T')+" - "+para_mon+" - "+para_id)
     para_mon_till=_fdmt_date.date_add(para_mon,mon_interval,"MM",1)
-    para_file=data_path+label+"_hist/"+_fdmt_date.date_format(para_mon,"yyyymm")+"_"+para_id+".txt"
+    para_file=__data_path+label+"_hist/"+_fdmt_date.date_format(para_mon,"yyyymm")+"_"+para_id+".txt"
     
     try:
         if label=="idx":
@@ -194,7 +268,6 @@ def get_stk_hist(para_id,para_mon,except_list,label="stk",mon_interval=1):
         print(str(ErrorCode))
         print("-----------------------------------------------------------------------------")
 
-
 def main():
 
     #Update Date
@@ -203,6 +276,7 @@ def main():
     update_stk_classify()
     update_idx_component()
 
+    """
     #Run Procedure
     ####################################################################
     para_pre=_fdmt_procedure.procedure(flag="basic_idx_stk")
@@ -219,6 +293,7 @@ def main():
     else:
         print(_time.strftime('%Y/%m/%d %T')+" - ",para_res)
         print(_time.strftime('%Y/%m/%d %T')+" - Basic Index & Stock Errors!!!")
+    """
 
 if __name__ == '__main__':
     main()
