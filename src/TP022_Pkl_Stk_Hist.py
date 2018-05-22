@@ -62,7 +62,6 @@ def main():
             pickle.dump(para_df_res,pickle_file)
 
         pickle_file.close()
-        print(para_df_res)
 
 if __name__ == '__main__':
     main()

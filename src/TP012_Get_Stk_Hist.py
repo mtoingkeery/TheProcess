@@ -52,7 +52,6 @@ def main():
     para_df_res.drop_duplicates()
     para_df_res.reset_index(drop=True)
     para_df_res=para_df_res.sort_values(by=['id'])
-    para_df_res=para_df_res.head(10)
 
     para_id_list=[x[1:] for x in para_df_res["id"].tolist()]
 
