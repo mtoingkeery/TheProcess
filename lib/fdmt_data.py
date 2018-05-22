@@ -9,6 +9,7 @@ import psycopg2 as _cxo
 import numpy as _np
 import os as _os
 import pandas as _pd
+import pickle as _pickle
 import time as _time
 import tushare as _ts
 import sqlalchemy as _sqlalchemy
@@ -108,7 +109,29 @@ def pgs_execute_procedure(para_procedure,label=0):
         print(str(ErrorCode))
         print("-----------------------------------------------------------------------------")
 
-def pgs_update_stk_cov(lendays='60',flag='hs300',label='close'):    
+def pgs_df_to_db(para_df,table_name,chunksize=1000):
+    #Specific Func & Need to create table manually & Always truncate the target table
+    pgs_execute_query("TRUNCATE TABLE "+table_name+";")
+
+    #Setup Connection
+    tunnel_conn = _cxo.connect(host=__db_host,port=int(__db_port),user=__db_user,password=__db_passwd,database=__db_db)
+    tunnel_cur = tunnel_conn.cursor()
+
+    #Execute Many
+    para_str1="""INSERT INTO """+table_name+""" VALUES("""
+    para_str2="%s,"*para_df.columns.size
+
+    para_query=para_str1+para_str2[:-1]+")"
+    para_list = _np.array(para_df).tolist()
+    tunnel_cur.executemany(para_query, para_list)
+
+    tunnel_conn.commit()
+
+    #Close Connection
+    tunnel_cur.close()
+    tunnel_conn.close()
+
+def pgs_update_stk_cov(lendays='60',flag='hs300',label='close'):
     try:
         query_res="""SELECT STK.TDATE,STK.ID,STK.CLOSE AS VAL FROM DW.F_STK_HIST STK JOIN MAIN.D_IDX_COMPONENT IDX ON STK.ID=IDX.ID AND IDX.FLAG='"""+flag+"""' JOIN (SELECT TDATE FROM DW.F_IDX_HIST WHERE ID='000001' ORDER BY TDATE DESC LIMIT """+lendays+""" )DD ON STK.TDATE=DD.TDATE ORDER BY STK.TDATE,STK.ID"""
         query_idx="""SELECT ID FROM MAIN.D_IDX_COMPONENT IDX WHERE IDX.FLAG='"""+flag+"""' ORDER BY ID"""
@@ -177,25 +200,46 @@ def pgs_update_stk_cov_p2():
         print("-----------------------------------------------------------------------------")
         return [200,str(ErrorCode)]
 
-def pgs_df_to_db(para_df,table_name,chunksize=1000):
-    #Specific Func & Need to create table manually & Always truncate the target table
-    pgs_execute_query("TRUNCATE TABLE "+table_name+";")
+def load_df_config(flag="hs300"):
+    if flag in ["hs300","sme","gem","sz50","zz500","component"]:
+        para_file_path=data_path+"config/idx_"+flag+"_list.pkl"
+        para_file=open(para_file_path,"rb+")
+        para_df=_pickle.load(para_file)
+        para_file.close()
+        return para_df
+    elif flag in ["industry","concept","area"]:
+        para_file_path=data_path+"config/stk_"+flag+"_list.pkl"
+        para_file=open(para_file_path,"rb+")
+        para_df=_pickle.load(para_file)
+        para_file.close()
+        return para_df
+    elif flag in ["idx"]:
+        para_file_path=data_path+"config/idx.pkl"
+        para_file=open(para_file_path,"rb+")
+        para_df=_pickle.load(para_file)
+        para_file.close()
+        return para_df
 
-    #Setup Connection
-    tunnel_conn = _cxo.connect(host=__db_host,port=int(__db_port),user=__db_user,password=__db_passwd,database=__db_db)
-    tunnel_cur = tunnel_conn.cursor()
+def load_df_hist(filter_df,lendays=200,para_start_date="",para_end_date="",index_hist=True):
+    para_df1=filter_df.loc[:,["id"]]
 
-    #Execute Many
-    para_str1="""INSERT INTO """+table_name+""" VALUES("""
-    para_str2="%s,"*para_df.columns.size
+    if para_start_date=="":
+        1
+    else:
+        1
+    para_file_path=data_path+"idx_hist/.pkl"
+    para_file=open(para_file_path,"rb+")
+    para_df=_pickle.load(para_file)
+    para_file.close()
 
-    para_query=para_str1+para_str2[:-1]+")"
-    para_list = _np.array(para_df).tolist()
-    tunnel_cur.executemany(para_query, para_list)
 
-    tunnel_conn.commit()
 
-    #Close Connection
-    tunnel_cur.close()
-    tunnel_conn.close()
+    if index_hist==True:
+        para_res=load_df_config("idx")
+        para_df2=para_res.loc[:,["id"]]
 
+    print(para_res)
+
+filter_df=load_df_config("hs300")
+
+load_df_hist(filter_df)
