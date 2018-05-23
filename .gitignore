@@ -4,5 +4,6 @@ log/
 config/*.json
 bin/*.bat
 lib/__pycache__/*.pyc
+src/__pycache__/*.pyc
 *.iml
 .idea
