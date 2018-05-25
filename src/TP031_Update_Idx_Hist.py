@@ -54,10 +54,10 @@ def main():
         para_df2.to_sql("tmp_idx_hist",magic_box,if_exists="append",schema="main",index=False)
 
     if inital_flag==True:
-        fdt.pgs_execute_query("CREATE TABLE MAIN.F_IDX_HIST AS  WHERE TDATE>=(SELECT MIN(TDATE) FROM MAIN.TMP_IDX_HIST)")
-
-    fdt.pgs_execute_query("DELETE FROM MAIN.F_IDX_HIST WHERE TDATE>=(SELECT MIN(TDATE) FROM MAIN.TMP_IDX_HIST)")
-    fdt.pgs_execute_query("INSERT INTO MAIN.F_IDX_HIST SELECT * FROM MAIN.TMP_IDX_HIST")
+        fdt.pgs_execute_query("CREATE TABLE MAIN.F_IDX_HIST AS SELECT * FROM MAIN.TMP_IDX_HIST)")
+    else:
+        fdt.pgs_execute_query("DELETE FROM MAIN.F_IDX_HIST WHERE TDATE>=(SELECT MIN(TDATE) FROM MAIN.TMP_IDX_HIST)")
+        fdt.pgs_execute_query("INSERT INTO MAIN.F_IDX_HIST SELECT * FROM MAIN.TMP_IDX_HIST")
 
     fdt.pgs_execute_query("SELECT DW.PGS_UPDATE_HIST_IDX('"+para_date_start+"')")
 
