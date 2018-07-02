@@ -1,26 +1,21 @@
-# -*- coding: utf-8 -*-
-"""
-Created on Tue Apr 10 06:19:07 2018
+import tensorflow as tf
+import time
+from tensorflow.python.client import device_lib
 
-@author: houz
-"""
+print(time.strftime('%Y/%m/%d %T')+" - Start")    
 
-import os,time
-import pandas as pd
-import fdmt_data as fdt
-import fdmt_date as fda
-import fdmt_wechat as fdw
-import urllib as _urllib
-import json
+matrix1 = tf.constant([[3., 3., 3.]])
+matrix2 = tf.constant([[2.], [2.], [2.]])
+
+product = tf.matmul(matrix1, matrix2)
+sess = tf.Session(config=tf.ConfigProto(log_device_placement=True))
+result = sess.run(product)
+print (result)
+sess.close()
+
+print(time.strftime('%Y/%m/%d %T')+" - End")    
 
 
-url = "http://apis.baidu.com/apistore/weatherservice/weather?citypinyin="
+two_node = tf.constant(2)
+print(two_node)
 
-city= "shanghai"
-#完整api访问接口
-target_url=url+city
-
-headers={"apikey", "vMUI0wh6BUDLR2WkiP3P0oaZtwNgL5iE"}
-
-post_request = _urllib.request.Request(target_url,headers=headers)
-post_res = eval(_urllib.request.urlopen(post_request).read().decode('utf-8'))
