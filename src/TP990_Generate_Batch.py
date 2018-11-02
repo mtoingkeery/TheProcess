@@ -37,7 +37,7 @@ def main():
     bat_file=open(bin_path+"regular_update.bat",'w+')
 
     bat_file.write("cd/\n")
-    bat_file.write("c:\n")
+    bat_file.write("d:\n")
     bat_file.write("cd "+main_path+"\n")
     bat_file.write("git pull\n")
     bat_file.write("git add .\n")
