@@ -24,7 +24,10 @@ def main():
     else:
         para_date_start=fdmt_date.date_add(fdmt_date.current_month_str,-1,"MM")
         para_date_end=fdmt_date.date_add(fdmt_date.current_month_str,1,"MM")
-        
+
+    para_date_start='2018-07-01'
+    para_date_end='2018-11-01'
+
     para_date_list=fdmt_date.date_list(para_date_start,para_date_end,"MM")
 
     pickle_file_path=data_path+"config/idx.pkl"

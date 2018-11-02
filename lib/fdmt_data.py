@@ -23,7 +23,7 @@ data_path=main_path+"data/"
 db_config=_os.environ["THE_PROCESS_DB"]
 [__db_host,__db_port,__db_db,__db_user,__db_passwd]=db_config.split(";")
 
-magic_box = _sqlalchemy.create_engine("postgresql+psycopg2://"+__db_user+":"+__db_passwd+"@"+__db_host+"/"+__db_db)
+magic_box = _sqlalchemy.create_engine("mysql+pymysql://"+__db_user+":"+__db_passwd+"@"+__db_host+"/"+__db_db)
 
 def pgs_select_query(para_query,label=0):
     try:

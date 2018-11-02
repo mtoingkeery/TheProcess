@@ -68,7 +68,7 @@ def wechat_access_token(agent_name="Message"):
         print("-----------------------------------------------------------------------------")
         return [200,"Exception Occurs!"]
 
-def wechat_send(message_content="Hello World! via Python",to_users="",agent_name="Message"):
+def wechat_send(message_content="Hello World! via Python",to_users="@all",agent_name="Message"):
     para_res=wechat_access_token("Message")    
     if para_res[0]<=1:
         access_token=para_res[1]

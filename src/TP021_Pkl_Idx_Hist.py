@@ -26,8 +26,8 @@ def main():
         para_date_start=fdmt_date.date_add(fdmt_date.current_month_str,-1,"MM")
         para_date_end=fdmt_date.date_add(fdmt_date.current_month_str,1,"MM")
 
-    #para_date_start='2014-01-01'
-    #para_date_end='2018-06-01'
+    para_date_start='2018-07-01'
+    para_date_end='2018-11-01'
 
     para_list=fdmt_date.date_list(para_date_start,para_date_end,"MM")
 
@@ -48,7 +48,7 @@ def main():
             para_df2=para_df1.rename(columns={"utime":"dtime"})
             para_df2["utime"]=time.strftime("%Y/%m/%d %T")
 
-            para_df_res=pd.concat([para_df_res,para_df2],ignore_index=True)
+            para_df_res=pd.concat([para_df_res,para_df2],ignore_index=True,sort=True)
             para_df_res=para_df_res.sort_values(by=['id','tdate'])
             para_df_res.reset_index(drop=True)
 

@@ -15,7 +15,7 @@ import pickle as _pickle
 import time as _time
 import tushare as _ts
 
-__magic_box=_fdmt_data.magic_box
+#__magic_box=_fdmt_data.magic_box
 __data_path=_fdmt_data.data_path
 
 def update_idx_list(label=0):

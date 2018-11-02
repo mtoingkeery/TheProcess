@@ -25,13 +25,18 @@ def main():
         para_date_start=fdmt_date.date_add(fdmt_date.current_month_str,-1,"MM")
         para_date_end=fdmt_date.date_add(fdmt_date.current_month_str,1,"MM")
 
-    para_date_list=fdmt_date.date_list(para_date_start,para_date_end,"MM")
+    para_date_start='2018-07-01'
+    para_date_end='2018-11-01'
+
+    para_date_list=fdmt_date.date_list(para_date_start,para_date_end,"MM",para_interval=2)
 
     pickle_file_path=data_path+"config/idx_hs300_list.pkl"
     pickle_file=open(pickle_file_path,"rb+")
-    para_res1=pickle.load(pickle_file)
+    para_res=pickle.load(pickle_file)
     pickle_file.close()
 
+    # 只选取HS300里的STK
+    """
     pickle_file_path=data_path+"config/idx_sz50_list.pkl"
     pickle_file=open(pickle_file_path,"rb+")
     para_res2=pickle.load(pickle_file)
@@ -43,9 +48,10 @@ def main():
     pickle_file.close()
 
     para_res = pd.DataFrame(columns=['id'])
-    para_res=pd.concat([para_res,para_res1],ignore_index=True)
-    para_res=pd.concat([para_res,para_res2],ignore_index=True)
-    para_res=pd.concat([para_res,para_res3],ignore_index=True)
+    para_res=pd.concat([para_res,para_res1],ignore_index=True,sort=True)
+    para_res=pd.concat([para_res,para_res2],ignore_index=True,sort=True)
+    para_res=pd.concat([para_res,para_res3],ignore_index=True,sort=True)
+    """
 
     para_df_res=para_res.loc[:,["id"]]
 
