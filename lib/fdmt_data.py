@@ -200,46 +200,50 @@ def pgs_update_stk_cov_p2():
         print("-----------------------------------------------------------------------------")
         return [200,str(ErrorCode)]
 
-def load_df_config(flag="hs300"):
+def load_idx_df(flag="hs300"):
     if flag in ["hs300","sme","gem","sz50","zz500","component"]:
         para_file_path=data_path+"config/idx_"+flag+"_list.pkl"
         para_file=open(para_file_path,"rb+")
         para_df=_pickle.load(para_file)
         para_file.close()
-        return para_df
     elif flag in ["industry","concept","area"]:
         para_file_path=data_path+"config/stk_"+flag+"_list.pkl"
         para_file=open(para_file_path,"rb+")
         para_df=_pickle.load(para_file)
         para_file.close()
-        return para_df
     elif flag in ["idx"]:
         para_file_path=data_path+"config/idx.pkl"
         para_file=open(para_file_path,"rb+")
         para_df=_pickle.load(para_file)
         para_file.close()
-        return para_df
 
-def load_df_hist(filter_df,lendays=200,para_start_date="",para_end_date="",index_hist=True):
-    para_df1=filter_df.loc[:,["id"]]
+    para_df = para_df.sort_values("id")
+    para_df = para_df.reset_index(drop=True)
 
-    if para_start_date=="":
-        1
+    return para_df
+
+def load_hist_df(flag="idx"):
+
+    stk_path=data_path+"stk_pkl/"
+    idx_path=data_path+"idx_pkl/"
+
+    if flag=="idx":
+        target_path=idx_path
     else:
-        1
-    para_file_path=data_path+"idx_hist/.pkl"
-    para_file=open(para_file_path,"rb+")
-    para_df=_pickle.load(para_file)
-    para_file.close()
+        target_path=stk_path
 
+    df_res=_pd.DataFrame()
+    for (dirpath, dirname, filenames) in _os.walk(target_path):
+        for filename in filenames:
+            para_filename=dirpath+filename
 
+            try:
+                para_file=open(para_filename,"rb+")
+                para_df=_pickle.load(para_file)
+            except Exception as e:
+                print(str(e))
+            finally:
+                para_file.close()
 
-    if index_hist==True:
-        para_res=load_df_config("idx")
-        para_df2=para_res.loc[:,["id"]]
-
-    print(para_res)
-
-    filter_df=load_df_config("hs300")
-
-    load_df_hist(filter_df)
+            df_res=_pd.concat([df_res,para_df],ignore_index=True,sort=True)
+    return df_res
